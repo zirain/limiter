@@ -1,0 +1,24 @@
+apiVersion: policy.zirain.info/v1alpha1
+kind: RateLimit
+metadata:
+  name: ratelimit-sample
+spec:
+  workloadSelector:
+    app: fortio
+  egress:
+    host: httpbin.default.svc.cluster.local
+    port: 8000
+  localRateLimit:
+    rules:
+      - policy:
+          brust: 100
+          tokensPerFill: 100
+          interval: 60s
+      - match:
+          - url:
+              matchType: Prefix
+              path: "/ip"
+        policy:
+          brust: 10
+          tokensPerFill: 10
+          interval: 60s

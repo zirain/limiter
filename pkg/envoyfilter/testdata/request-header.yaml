@@ -1,0 +1,74 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: ratelimit-sample
+spec:
+  workloadSelector:
+    labels:
+      app: httpbin
+  configPatches:
+    - applyTo: HTTP_FILTER
+      match:
+        context: SIDECAR_INBOUND
+        listener:
+          filterChain:
+            filter:
+              name: "envoy.filters.network.http_connection_manager"
+      patch:
+        operation: INSERT_BEFORE
+        value:
+          name: envoy.filters.http.local_ratelimit
+          typed_config:
+            "@type": type.googleapis.com/udpa.type.v1.TypedStruct
+            type_url: type.googleapis.com/envoy.extensions.filters.http.local_ratelimit.v3.LocalRateLimit
+            value:
+              stat_prefix: ratelimiter
+    - applyTo: HTTP_ROUTE
+      match:
+        context: SIDECAR_INBOUND
+        routeConfiguration:
+          vhost:
+            route:
+              action: ROUTE
+      patch:
+        operation: MERGE
+        value:
+          route:
+            rateLimits:
+              - actions:
+                  - headerValueMatch:
+                      descriptorValue: HEADER|Exist|:x-real-user
+                      headers:
+                        - name: :x-real-user
+                          presentMatch: true
+          typedPerFilterConfig:
+            envoy.filters.http.local_ratelimit:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.local_ratelimit.v3.LocalRateLimit
+              statPrefix: "ratelimiter"
+              tokenBucket:
+                maxTokens: 100
+                tokensPerFill: 100
+                fillInterval: 60s
+              filterEnabled:
+                runtimeKey: filter_enabled
+                defaultValue:
+                  numerator: 100
+                  #denominator: HUNDRED
+              filterEnforced:
+                runtimeKey: filter_enforced
+                defaultValue:
+                  numerator: 100
+                  #denominator: HUNDRED
+              responseHeadersToAdd:
+                - append: false
+                  header:
+                    key: x-local-rate-limit
+                    value: "true"
+              descriptors:
+                - entries:
+                    - key: header_match
+                      value: HEADER|Exist|:x-real-user
+                  tokenBucket:
+                    maxTokens: 5
+                    tokensPerFill: 5
+                    fillInterval: 60s

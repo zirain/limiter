@@ -1,0 +1,20 @@
+apiVersion: policy.zirain.info/v1alpha1
+kind: RateLimit
+metadata:
+  name: ratelimit-sample
+spec:
+  workloadSelector:
+    app: httpbin
+  localRateLimit:
+    rules:
+      - policy:
+          brust: 100
+          tokensPerFill: 100
+          interval: 60s
+      - match:
+          - method:
+              verb: "GET"
+        policy:
+          brust: 5
+          tokensPerFill: 5
+          interval: 60s

@@ -1,0 +1,364 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.8.0
+  creationTimestamp: null
+  name: ratelimits.policy.zirain.info
+spec:
+  group: policy.zirain.info
+  names:
+    kind: RateLimit
+    listKind: RateLimitList
+    plural: ratelimits
+    singular: ratelimit
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: RateLimit is the Schema for the ratelimits API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: RateLimitSpec defines the desired state of RateLimit
+            properties:
+              egress:
+                description: Egress specifies the configuration of the sidecar for
+                  processing outbound traffic from the attached workload instance
+                  to other services in the mesh.
+                properties:
+                  host:
+                    description: 'The name of the outbound service to which should
+                      be rate limited. The corresponding service can be a service
+                      in the service registry (e.g., a Kubernetes or cloud foundry
+                      service) or a service specified using a `ServiceEntry` or `VirtualService`
+                      configuration. *Note for Kubernetes users*: When short names
+                      are used (e.g. "reviews" instead of "reviews.default.svc.cluster.local"),
+                      Istio will interpret the short name based on the namespace of
+                      the rule, not the service. A rule in the "default" namespace
+                      containing a host "reviews" will be interpreted as "reviews.default.svc.cluster.local",
+                      irrespective of the actual namespace associated with the reviews
+                      service. To avoid potential misconfigurations, it is recommended
+                      to always use fully qualified domain names over short names.'
+                    type: string
+                  port:
+                    description: The outbound service port number
+                    format: int32
+                    type: integer
+                required:
+                - host
+                - port
+                type: object
+              globalRateLimit:
+                description: HTTP Global rate limiting.
+                properties:
+                  rule:
+                    description: Rules of how the request will be performed.
+                    items:
+                      properties:
+                        match:
+                          description: Specifies how the request will be matched.
+                            If match is empty, policy will be used as default policy.
+                          items:
+                            properties:
+                              header:
+                                description: Rate limit on request header.
+                                properties:
+                                  caseSensitive:
+                                    description: If false, indicates the exact/prefix/suffix/contains
+                                      matching should be case insensitive. This has
+                                      no effect for the regex match. For example,
+                                      the matcher *data* will match both input string
+                                      *Data* and *data* if set to false.
+                                    type: boolean
+                                  key:
+                                    description: Specifies the name of the header
+                                      in the request.
+                                    type: string
+                                  matchType:
+                                    description: Specifies how the header match will
+                                      be performed to route the request.
+                                    type: string
+                                  value:
+                                    description: If specified, header match will be
+                                      performed based on the value of the header.
+                                      This should be empty when type is Exist.
+                                    type: string
+                                required:
+                                - key
+                                - matchType
+                                type: object
+                              method:
+                                description: Rate limit on request method.
+                                properties:
+                                  verb:
+                                    description: Specifies the name of method in a
+                                      request (e.g. GET, POST, etc.).
+                                    type: string
+                                required:
+                                - verb
+                                type: object
+                              source:
+                                description: Rate limit on request source.
+                                properties:
+                                  cidr:
+                                    description: IP will be performed in Classless
+                                      Inter-Domain Routing format(e.g. 10.10.0.10/32,
+                                      10.10.0.0/16, etc.). When RateLimitType is Local,
+                                      the mask must be 32.
+                                    type: string
+                                required:
+                                - cidr
+                                type: object
+                              url:
+                                description: Rate limit on request path.
+                                properties:
+                                  caseSensitive:
+                                    description: If false, indicates the exact/prefix/suffix
+                                      matching should be case insensitive. This has
+                                      no effect for the regex match. For example,
+                                      the matcher *data* will match both input string
+                                      *Data* and *data* if set to false.
+                                    type: boolean
+                                  matchType:
+                                    description: Specifies how the path match will
+                                      be performed(e.g. prefix, suffix, exact, regex,
+                                      etc.). Exist match type is not support.
+                                    type: string
+                                  path:
+                                    description: Path of the request.
+                                    type: string
+                                required:
+                                - matchType
+                                - path
+                                type: object
+                            type: object
+                          type: array
+                        policy:
+                          description: Policy will be used when the request matched.
+                          properties:
+                            brust:
+                              description: Burst is the maximum number of requests
+                                allowed to go through in the same arbitrarily small
+                                period of time.
+                              format: int32
+                              type: integer
+                            interval:
+                              description: The fill interval that tokens are added
+                                to the bucket. During each fill interval `TokensPerFill`
+                                are added to the bucket. The bucket will never contain
+                                more than `Burst` tokens.
+                              type: string
+                            tokensPerFill:
+                              description: The number of tokens added to the bucket
+                                during each fill interval.
+                              format: int32
+                              type: integer
+                          required:
+                          - brust
+                          - interval
+                          - tokensPerFill
+                          type: object
+                      required:
+                      - policy
+                      type: object
+                    type: array
+                  service:
+                    description: Configuration for an external rate limit service.
+                    properties:
+                      denyOnFailed:
+                        description: The behaviour in case the rate limiting service
+                          does not respond back. When it is set to true, the proxy
+                          will not allow traffic in case of communication failure
+                          between rate limiting service and the proxy.
+                        type: boolean
+                      port:
+                        description: Specifies the port of the service.
+                        format: int32
+                        type: integer
+                      service:
+                        description: "Specifies the service that implements rate limit
+                          service. The format is \"<Hostname>\". The <Hostname> is
+                          the full qualified host name in the Istio service registry
+                          defined by the Kubernetes service or ServiceEntry. The <Namespace>
+                          is the namespace of the Kubernetes service or ServiceEntry
+                          object, and can be omitted if the <Hostname> alone can decide
+                          the service unambiguously (normally this means there is
+                          only 1 such host name in the service registry). \n Example:
+                          \"rls.foo.svc.cluster.local\" or \"rls.example.com\"."
+                        type: string
+                    required:
+                    - denyOnFailed
+                    - port
+                    - service
+                    type: object
+                required:
+                - rule
+                - service
+                type: object
+              ingress:
+                description: Ingress specifies the configuration of the sidecar for
+                  processing inbound traffic to the attached workload instance.
+                properties:
+                  port:
+                    description: The inbound service port number
+                    format: int32
+                    type: integer
+                required:
+                - port
+                type: object
+              localRateLimit:
+                description: HTTP Local rate limiting.
+                properties:
+                  rules:
+                    description: Rules of how the request will be performed.
+                    items:
+                      properties:
+                        match:
+                          description: Specifies how the request will be matched.
+                            If match is empty, policy will be used as default policy.
+                          items:
+                            properties:
+                              header:
+                                description: Rate limit on request header.
+                                properties:
+                                  caseSensitive:
+                                    description: If false, indicates the exact/prefix/suffix/contains
+                                      matching should be case insensitive. This has
+                                      no effect for the regex match. For example,
+                                      the matcher *data* will match both input string
+                                      *Data* and *data* if set to false.
+                                    type: boolean
+                                  key:
+                                    description: Specifies the name of the header
+                                      in the request.
+                                    type: string
+                                  matchType:
+                                    description: Specifies how the header match will
+                                      be performed to route the request.
+                                    type: string
+                                  value:
+                                    description: If specified, header match will be
+                                      performed based on the value of the header.
+                                      This should be empty when type is Exist.
+                                    type: string
+                                required:
+                                - key
+                                - matchType
+                                type: object
+                              method:
+                                description: Rate limit on request method.
+                                properties:
+                                  verb:
+                                    description: Specifies the name of method in a
+                                      request (e.g. GET, POST, etc.).
+                                    type: string
+                                required:
+                                - verb
+                                type: object
+                              source:
+                                description: Rate limit on request source.
+                                properties:
+                                  cidr:
+                                    description: IP will be performed in Classless
+                                      Inter-Domain Routing format(e.g. 10.10.0.10/32,
+                                      10.10.0.0/16, etc.). When RateLimitType is Local,
+                                      the mask must be 32.
+                                    type: string
+                                required:
+                                - cidr
+                                type: object
+                              url:
+                                description: Rate limit on request path.
+                                properties:
+                                  caseSensitive:
+                                    description: If false, indicates the exact/prefix/suffix
+                                      matching should be case insensitive. This has
+                                      no effect for the regex match. For example,
+                                      the matcher *data* will match both input string
+                                      *Data* and *data* if set to false.
+                                    type: boolean
+                                  matchType:
+                                    description: Specifies how the path match will
+                                      be performed(e.g. prefix, suffix, exact, regex,
+                                      etc.). Exist match type is not support.
+                                    type: string
+                                  path:
+                                    description: Path of the request.
+                                    type: string
+                                required:
+                                - matchType
+                                - path
+                                type: object
+                            type: object
+                          type: array
+                        policy:
+                          description: Policy will be used when the request matched.
+                          properties:
+                            brust:
+                              description: Burst is the maximum number of requests
+                                allowed to go through in the same arbitrarily small
+                                period of time.
+                              format: int32
+                              type: integer
+                            interval:
+                              description: The fill interval that tokens are added
+                                to the bucket. During each fill interval `TokensPerFill`
+                                are added to the bucket. The bucket will never contain
+                                more than `Burst` tokens.
+                              type: string
+                            tokensPerFill:
+                              description: The number of tokens added to the bucket
+                                during each fill interval.
+                              format: int32
+                              type: integer
+                          required:
+                          - brust
+                          - interval
+                          - tokensPerFill
+                          type: object
+                      required:
+                      - policy
+                      type: object
+                    type: array
+                required:
+                - rules
+                type: object
+              workloadSelector:
+                additionalProperties:
+                  type: string
+                description: Criteria used to select the specific set of pods/VMs
+                  on which this `RateLimit` configuration should be applied. If omitted,
+                  the `RateLimit` configuration will be applied to all workload instances
+                  in the same namespace.
+                type: object
+            required:
+            - workloadSelector
+            type: object
+          status:
+            description: RateLimitStatus defines the observed state of RateLimit
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

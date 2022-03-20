@@ -1,0 +1,16 @@
+domain: zirain.info
+layout:
+- go.kubebuilder.io/v3
+projectName: limiter
+repo: github.com/zirain/limiter
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: zirain.info
+  group: policy
+  kind: RateLimit
+  path: github.com/zirain/limiter/api/v1alpha1
+  version: v1alpha1
+version: "3"
