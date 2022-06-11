@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/envoyproxy/go-control-plane v0.10.2-0.20220119144013-5ce31a86d483
 	github.com/gogo/protobuf v1.3.2
-	github.com/onsi/ginkgo v1.16.5
+	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/onsi/gomega v1.18.1
 	istio.io/api v0.0.0-20220319075843-7fbbe6f27e31
 	istio.io/client-go v1.13.2
@@ -16,6 +16,7 @@ require (
 
 require (
 	github.com/golang/protobuf v1.5.2
+	github.com/onsi/ginkgo/v2 v2.0.0
 	google.golang.org/protobuf v1.28.0
 	istio.io/istio v0.0.0-20220319151143-80da1ee61981
 	sigs.k8s.io/controller-runtime/tools/setup-envtest v0.0.0-20220607150856-0c2effbc7eab

@@ -61,7 +61,12 @@ tidy:
 
 .PHONY: test
 test: manifests generate fmt vet envtest ## Run tests.
-	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./... -coverprofile cover.out
+	go test --race --v ./pkg/...
+	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./controllers/... -coverprofile cover.out
+
+.PHONY: e2e
+e2e: ginkgo
+	ginkgo -v --race --trace --fail-fast -p --randomize-all ./test/e2e/
 
 ##@ Build
 
@@ -122,3 +127,8 @@ ENVTEST = $(GOBIN)/setup-envtest
 .PHONY: envtest
 envtest: ## Download envtest-setup locally if necessary.
 	go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
+
+GINKGO = $(GOBIN)/ginkgo
+.PHONY: ginkgo
+ginkgo: ## Download envtest-setup locally if necessary.
+	go install github.com/onsi/ginkgo/v2/ginkgo@v2.0.0
