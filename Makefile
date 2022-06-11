@@ -55,6 +55,10 @@ fmt: ## Run go fmt against code.
 vet: ## Run go vet against code.
 	go vet ./...
 
+.PHONY: tidy
+tidy: 
+	go mod tidy -compat=1.17
+
 .PHONY: test
 test: manifests generate fmt vet envtest ## Run tests.
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./... -coverprofile cover.out
@@ -62,7 +66,7 @@ test: manifests generate fmt vet envtest ## Run tests.
 ##@ Build
 
 .PHONY: build
-build: generate fmt vet ## Build manager binary.
+build: tidy generate fmt vet ## Build manager binary.
 	go build -o bin/manager main.go
 
 .PHONY: run
@@ -112,7 +116,7 @@ controller-gen: ## Download controller-gen locally if necessary.
 KUSTOMIZE = $(GOBIN)/kustomize
 .PHONY: kustomize
 kustomize: ## Download kustomize locally if necessary.
-	go install sigs.k8s.io/kustomize/kustomize/v3@v3.8.7
+	go install sigs.k8s.io/kustomize/kustomize/v4@v4.5.5
 
 ENVTEST = $(GOBIN)/setup-envtest
 .PHONY: envtest
