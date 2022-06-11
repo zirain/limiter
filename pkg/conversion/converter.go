@@ -25,6 +25,7 @@ var (
 	generators = map[actionType]config.Generator{
 		Url:    &config.UrlMatchGenerator{},
 		Header: &config.HeaderMatchGenerator{},
+		Method: &config.MethodMatchGenerator{},
 	}
 )
 
