@@ -7,7 +7,7 @@ import (
 	routev3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	commonratelimitv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/common/ratelimit/v3"
 	matcherv3 "github.com/envoyproxy/go-control-plane/envoy/type/matcher/v3"
-	policyv1alpha1 "github.com/zirain/limiter/api/v1alpha1"
+	policyv1alpha1 "github.com/zirain/limiter/api/policy/v1alpha1"
 )
 
 const (

@@ -33,7 +33,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	policyv1alpha1 "github.com/zirain/limiter/api/v1alpha1"
+	policyv1alpha1 "github.com/zirain/limiter/api/policy/v1alpha1"
 	"github.com/zirain/limiter/controllers"
 	//+kubebuilder:scaffold:imports
 )

@@ -10,7 +10,7 @@ import (
 	"istio.io/istio/pkg/test/util/assert"
 	"sigs.k8s.io/yaml"
 
-	policyv1alpha1 "github.com/zirain/limiter/api/v1alpha1"
+	policyv1alpha1 "github.com/zirain/limiter/api/policy/v1alpha1"
 )
 
 func TestToEnvoyFilter(t *testing.T) {

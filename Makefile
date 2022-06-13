@@ -44,8 +44,8 @@ manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and Cust
 	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 
 .PHONY: generate
-generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
-	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
+generate: controller-gen install-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
+	hack/update-codegen.sh
 
 .PHONY: fmt
 fmt: ## Run go fmt against code.
@@ -132,3 +132,11 @@ GINKGO = $(GOBIN)/ginkgo
 .PHONY: ginkgo
 ginkgo: ## Download envtest-setup locally if necessary.
 	go install github.com/onsi/ginkgo/v2/ginkgo@v2.0.0
+
+.PHONY: install-gen
+install-gen:
+	go install k8s.io/code-generator/cmd/client-gen
+	go install k8s.io/code-generator/cmd/lister-gen
+	go install k8s.io/code-generator/cmd/informer-gen
+	go install k8s.io/code-generator/cmd/register-gen
+	go install k8s.io/code-generator/cmd/deepcopy-gen

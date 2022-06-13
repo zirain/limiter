@@ -11,6 +11,6 @@ resources:
   domain: zirain.info
   group: policy
   kind: RateLimit
-  path: github.com/zirain/limiter/api/v1alpha1
+  path: github.com/zirain/limiter/api/policy/v1alpha1
   version: v1alpha1
 version: "3"

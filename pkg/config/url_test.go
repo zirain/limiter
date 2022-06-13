@@ -9,7 +9,7 @@ import (
 	matcherv3 "github.com/envoyproxy/go-control-plane/envoy/type/matcher/v3"
 	"istio.io/istio/pkg/test/util/assert"
 
-	policyv1alpha1 "github.com/zirain/limiter/api/v1alpha1"
+	policyv1alpha1 "github.com/zirain/limiter/api/policy/v1alpha1"
 )
 
 func TestUrlGenerator(t *testing.T) {

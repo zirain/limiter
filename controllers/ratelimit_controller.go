@@ -31,7 +31,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	policyv1alpha1 "github.com/zirain/limiter/api/v1alpha1"
+	policyv1alpha1 "github.com/zirain/limiter/api/policy/v1alpha1"
 	"github.com/zirain/limiter/pkg/envoyfilter"
 )
 
