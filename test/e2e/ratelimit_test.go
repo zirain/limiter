@@ -35,7 +35,7 @@ var _ = ginkgo.Describe("RateLimit", func() {
 		gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 
 		// wait prometheus scrape
-		time.Sleep(15 * time.Second)
+		time.Sleep(16 * time.Second) // prometheus scrape every 15s
 
 		postCount, err := util.QueryRateLimitedCount(prom, httpbinPod)
 		gomega.Expect(err).ShouldNot(gomega.HaveOccurred())

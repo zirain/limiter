@@ -61,6 +61,9 @@ func ToEnvoyFilter(ratelimit *policyv1alpha1.RateLimit) *clientnetworkingv1alpha
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      ratelimit.Name,
 			Namespace: ratelimit.Namespace,
+			OwnerReferences: []metav1.OwnerReference{
+				getOwnerReferences(ratelimit),
+			},
 		},
 		Spec: v1alpha3.EnvoyFilter{
 			WorkloadSelector: &v1alpha3.WorkloadSelector{
@@ -110,6 +113,15 @@ func ToEnvoyFilter(ratelimit *policyv1alpha1.RateLimit) *clientnetworkingv1alpha
 		},
 	}
 	return ef
+}
+
+func getOwnerReferences(rl *policyv1alpha1.RateLimit) metav1.OwnerReference {
+	return metav1.OwnerReference{
+		APIVersion: rl.APIVersion,
+		Kind:       rl.Kind,
+		Name:       rl.Name,
+		UID:        rl.UID,
+	}
 }
 
 func generateValue(message proto.Message) (*types.Struct, error) {
