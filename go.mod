@@ -18,6 +18,7 @@ require (
 	github.com/onsi/ginkgo/v2 v2.0.0
 	github.com/prometheus/client_golang v1.12.1
 	github.com/prometheus/common v0.32.1
+	github.com/prometheus/prometheus v2.5.0+incompatible
 	google.golang.org/protobuf v1.28.0
 	istio.io/istio v0.0.0-20220319151143-80da1ee61981
 	k8s.io/api v0.24.0
@@ -45,6 +46,7 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.1.2 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.3.0 // indirect
+	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/cncf/xds/go v0.0.0-20220121163655-4a2b9fdd466b // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect

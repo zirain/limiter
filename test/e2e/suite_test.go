@@ -10,6 +10,7 @@ import (
 	"github.com/onsi/gomega"
 	prometheusApi "github.com/prometheus/client_golang/api"
 	prometheusApiV1 "github.com/prometheus/client_golang/api/prometheus/v1"
+	istioclient "istio.io/client-go/pkg/clientset/versioned"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
@@ -22,6 +23,7 @@ import (
 var (
 	kubeClient    *kubernetes.Clientset
 	limiterClient *clientset.Clientset
+	istioClient   *istioclient.Clientset
 	execClient    *podexec.Client
 	prom          prometheusApiV1.API
 )
@@ -36,6 +38,7 @@ func TestMain(m *testing.M) {
 	configPath := util.KubeconfigPath(home)
 	config, _ := clientcmd.BuildConfigFromFlags(util.MasterURL(), configPath)
 	kubeClient = kubernetes.NewForConfigOrDie(config)
+	istioClient = istioclient.NewForConfigOrDie(config)
 	limiterClient = clientset.NewForConfigOrDie(config)
 	execClient = podexec.NewForConfigOrDie(config)
 

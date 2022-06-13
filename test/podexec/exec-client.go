@@ -3,9 +3,13 @@ package podexec
 import (
 	"bytes"
 	"crypto/tls"
+	"errors"
 	"fmt"
+	"io"
 	"net/http"
 
+	"github.com/prometheus/prometheus/pkg/labels"
+	"github.com/prometheus/prometheus/pkg/textparse"
 	v1 "k8s.io/api/core/v1"
 	spdyStream "k8s.io/apimachinery/pkg/util/httpstream/spdy"
 	"k8s.io/client-go/kubernetes"
@@ -13,6 +17,10 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/remotecommand"
 	"k8s.io/client-go/transport/spdy"
+)
+
+const (
+	sidecarContainerName = "istio-proxy"
 )
 
 type Client struct {
@@ -75,6 +83,45 @@ func (c *Client) PodExecCommands(podName, podNamespace, container string, comman
 	stdout = stdoutBuf.String()
 	stderr = stderrBuf.String()
 	return
+}
+
+func (c *Client) SidecarStats(podName, podNamespace string, metricName string) (float64, error) {
+	statsCmd := []string{
+		"curl",
+		"127.0.0.1:15000/stats/prometheus",
+	}
+	statsContent, _, err := c.PodExecCommands(podName, podNamespace, sidecarContainerName, statsCmd)
+	if err != nil {
+		return 0, err
+	}
+
+	parser := textparse.NewPromParser([]byte(statsContent))
+	for {
+		et, err := parser.Next()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return 0, err
+		}
+
+		switch et {
+		case textparse.EntrySeries:
+			_, _, v := parser.Series()
+			var res labels.Labels
+			parser.Metric(&res)
+			n := res.Get(labels.MetricName)
+			if n == metricName {
+				return v, nil
+			}
+
+		case textparse.EntryType:
+		case textparse.EntryHelp:
+		case textparse.EntryComment:
+		}
+	}
+
+	return 0, errors.New("metric not found")
 }
 
 // roundTripperFor creates a SPDY upgrader that will work over custom transports.
