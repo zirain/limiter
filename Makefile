@@ -90,6 +90,11 @@ docker-push: ## Push docker image with the manager.
 docker-load: docker-build
 	kind load docker-image ${IMG} --name istio
 
+.PHONY: docker-clean
+docker-clean:
+	docker image prune -f
+	docker volume prune -f
+
 ##@ Deployment
 
 ifndef ignore-not-found
