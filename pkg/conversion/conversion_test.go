@@ -13,7 +13,7 @@ import (
 	"istio.io/istio/pkg/test/util/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	policyv1alpha1 "github.com/zirain/limiter/api/v1alpha1"
+	policyv1alpha1 "github.com/zirain/limiter/api/policy/v1alpha1"
 )
 
 var (

@@ -2,6 +2,10 @@ apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
   name: ratelimit-sample
+  ownerReferences:
+  - apiVersion: policy.zirain.info/v1alpha1
+    kind: RateLimit
+    name: ratelimit-sample
 spec:
   workloadSelector:
     labels:

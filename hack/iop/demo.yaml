@@ -1,0 +1,17 @@
+# enable http_local_rate_limit stats
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+metadata:
+  name: mantis-demo
+  namespace: istio-system
+spec:
+  profile: minimal
+  values:
+    global:
+      meshID: mesh1
+  meshConfig:
+    accessLogFile: /dev/stdout
+    defaultConfig:
+      proxyStatsMatcher:
+        inclusionRegexps:
+          - ".*http_local_rate_limit.*"

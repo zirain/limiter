@@ -44,8 +44,8 @@ manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and Cust
 	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 
 .PHONY: generate
-generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
-	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
+generate: controller-gen install-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
+	hack/update-codegen.sh
 
 .PHONY: fmt
 fmt: ## Run go fmt against code.
@@ -61,7 +61,12 @@ tidy:
 
 .PHONY: test
 test: manifests generate fmt vet envtest ## Run tests.
-	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./... -coverprofile cover.out
+	go test --race --v ./pkg/...
+	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./controllers/... -coverprofile cover.out
+
+.PHONY: e2e
+e2e: ginkgo
+	ginkgo -v --race --trace --fail-fast -p --randomize-all ./test/e2e/
 
 ##@ Build
 
@@ -84,6 +89,11 @@ docker-push: ## Push docker image with the manager.
 .PHONY: docker-load
 docker-load: docker-build
 	kind load docker-image ${IMG} --name istio
+
+.PHONY: docker-clean
+docker-clean:
+	docker image prune -f
+	docker volume prune -f
 
 ##@ Deployment
 
@@ -122,3 +132,16 @@ ENVTEST = $(GOBIN)/setup-envtest
 .PHONY: envtest
 envtest: ## Download envtest-setup locally if necessary.
 	go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
+
+GINKGO = $(GOBIN)/ginkgo
+.PHONY: ginkgo
+ginkgo: ## Download envtest-setup locally if necessary.
+	go install github.com/onsi/ginkgo/v2/ginkgo@v2.0.0
+
+.PHONY: install-gen
+install-gen:
+	go install k8s.io/code-generator/cmd/client-gen
+	go install k8s.io/code-generator/cmd/lister-gen
+	go install k8s.io/code-generator/cmd/informer-gen
+	go install k8s.io/code-generator/cmd/register-gen
+	go install k8s.io/code-generator/cmd/deepcopy-gen

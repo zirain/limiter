@@ -200,8 +200,11 @@ type RateLimitStatus struct {
 	// Important: Run "make" to regenerate code after modifying this file
 }
 
+// +genclient
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
+// +kubebuilder:resource:scope="Namespaced"
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // RateLimit is the Schema for the ratelimits API
 type RateLimit struct {
@@ -213,14 +216,11 @@ type RateLimit struct {
 }
 
 //+kubebuilder:object:root=true
+//+k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // RateLimitList contains a list of RateLimit
 type RateLimitList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []RateLimit `json:"items"`
-}
-
-func init() {
-	SchemeBuilder.Register(&RateLimit{}, &RateLimitList{})
 }
