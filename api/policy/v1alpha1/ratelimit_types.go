@@ -81,8 +81,8 @@ type HttpLocalRateLimit struct {
 }
 
 type HttpGlobalRateLimit struct {
-	// Rules of how the request will be performed.
-	Rule []*RateLimitRule `json:"rule"`
+	// Specifies how the request will be matched.
+	Match []*RateLimitMatch `json:"match"`
 	// Configuration for an external rate limit service.
 	Service *RateLimitService `json:"service"`
 }

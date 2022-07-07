@@ -65,115 +65,80 @@ spec:
               globalRateLimit:
                 description: HTTP Global rate limiting.
                 properties:
-                  rule:
-                    description: Rules of how the request will be performed.
+                  match:
+                    description: Specifies how the request will be matched.
                     items:
                       properties:
-                        match:
-                          description: Specifies how the request will be matched.
-                            If match is empty, policy will be used as default policy.
-                          items:
-                            properties:
-                              header:
-                                description: Rate limit on request header.
-                                properties:
-                                  caseSensitive:
-                                    description: If false, indicates the exact/prefix/suffix/contains
-                                      matching should be case insensitive. This has
-                                      no effect for the regex match. For example,
-                                      the matcher *data* will match both input string
-                                      *Data* and *data* if set to false.
-                                    type: boolean
-                                  key:
-                                    description: Specifies the name of the header
-                                      in the request.
-                                    type: string
-                                  matchType:
-                                    description: Specifies how the header match will
-                                      be performed to route the request.
-                                    type: string
-                                  value:
-                                    description: If specified, header match will be
-                                      performed based on the value of the header.
-                                      This should be empty when type is Exist.
-                                    type: string
-                                required:
-                                - key
-                                - matchType
-                                type: object
-                              method:
-                                description: Rate limit on request method.
-                                properties:
-                                  verb:
-                                    description: Specifies the name of method in a
-                                      request (e.g. GET, POST, etc.).
-                                    type: string
-                                required:
-                                - verb
-                                type: object
-                              source:
-                                description: Rate limit on request source.
-                                properties:
-                                  cidr:
-                                    description: IP will be performed in Classless
-                                      Inter-Domain Routing format(e.g. 10.10.0.10/32,
-                                      10.10.0.0/16, etc.). When RateLimitType is Local,
-                                      the mask must be 32.
-                                    type: string
-                                required:
-                                - cidr
-                                type: object
-                              url:
-                                description: Rate limit on request path.
-                                properties:
-                                  caseSensitive:
-                                    description: If false, indicates the exact/prefix/suffix
-                                      matching should be case insensitive. This has
-                                      no effect for the regex match. For example,
-                                      the matcher *data* will match both input string
-                                      *Data* and *data* if set to false.
-                                    type: boolean
-                                  matchType:
-                                    description: Specifies how the path match will
-                                      be performed(e.g. prefix, suffix, exact, regex,
-                                      etc.). Exist match type is not support.
-                                    type: string
-                                  path:
-                                    description: Path of the request.
-                                    type: string
-                                required:
-                                - matchType
-                                - path
-                                type: object
-                            type: object
-                          type: array
-                        policy:
-                          description: Policy will be used when the request matched.
+                        header:
+                          description: Rate limit on request header.
                           properties:
-                            brust:
-                              description: Burst is the maximum number of requests
-                                allowed to go through in the same arbitrarily small
-                                period of time.
-                              format: int32
-                              type: integer
-                            interval:
-                              description: The fill interval that tokens are added
-                                to the bucket. During each fill interval `TokensPerFill`
-                                are added to the bucket. The bucket will never contain
-                                more than `Burst` tokens.
+                            caseSensitive:
+                              description: If false, indicates the exact/prefix/suffix/contains
+                                matching should be case insensitive. This has no effect
+                                for the regex match. For example, the matcher *data*
+                                will match both input string *Data* and *data* if
+                                set to false.
+                              type: boolean
+                            key:
+                              description: Specifies the name of the header in the
+                                request.
                               type: string
-                            tokensPerFill:
-                              description: The number of tokens added to the bucket
-                                during each fill interval.
-                              format: int32
-                              type: integer
+                            matchType:
+                              description: Specifies how the header match will be
+                                performed to route the request.
+                              type: string
+                            value:
+                              description: If specified, header match will be performed
+                                based on the value of the header. This should be empty
+                                when type is Exist.
+                              type: string
                           required:
-                          - brust
-                          - interval
-                          - tokensPerFill
+                          - key
+                          - matchType
                           type: object
-                      required:
-                      - policy
+                        method:
+                          description: Rate limit on request method.
+                          properties:
+                            verb:
+                              description: Specifies the name of method in a request
+                                (e.g. GET, POST, etc.).
+                              type: string
+                          required:
+                          - verb
+                          type: object
+                        source:
+                          description: Rate limit on request source.
+                          properties:
+                            cidr:
+                              description: IP will be performed in Classless Inter-Domain
+                                Routing format(e.g. 10.10.0.10/32, 10.10.0.0/16, etc.).
+                                When RateLimitType is Local, the mask must be 32.
+                              type: string
+                          required:
+                          - cidr
+                          type: object
+                        url:
+                          description: Rate limit on request path.
+                          properties:
+                            caseSensitive:
+                              description: If false, indicates the exact/prefix/suffix
+                                matching should be case insensitive. This has no effect
+                                for the regex match. For example, the matcher *data*
+                                will match both input string *Data* and *data* if
+                                set to false.
+                              type: boolean
+                            matchType:
+                              description: Specifies how the path match will be performed(e.g.
+                                prefix, suffix, exact, regex, etc.). Exist match type
+                                is not support.
+                              type: string
+                            path:
+                              description: Path of the request.
+                              type: string
+                          required:
+                          - matchType
+                          - path
+                          type: object
                       type: object
                     type: array
                   service:
@@ -206,7 +171,7 @@ spec:
                     - service
                     type: object
                 required:
-                - rule
+                - match
                 - service
                 type: object
               ingress:
