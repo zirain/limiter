@@ -39,12 +39,18 @@ help: ## Display this help.
 
 ##@ Development
 
+
+CONTROLLER_GEN = $(GOBIN)/controller-gen
+KUSTOMIZE = $(GOBIN)/kustomize
+ENVTEST = $(GOBIN)/setup-envtest
+GINKGO = $(GOBIN)/ginkgo
+
 .PHONY: manifests
-manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
+manifests: init ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
 	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 
 .PHONY: generate
-generate: controller-gen install-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
+generate: init ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
 	hack/update-codegen.sh
 
 .PHONY: fmt
@@ -60,12 +66,12 @@ tidy:
 	go mod tidy -compat=1.17
 
 .PHONY: test
-test: manifests generate fmt vet envtest ## Run tests.
+test: manifests generate fmt vet init ## Run tests.
 	go test --race --v ./pkg/...
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./controllers/... -coverprofile cover.out
 
 .PHONY: e2e
-e2e: ginkgo
+e2e: init
 	ginkgo -v --race --trace --fail-fast -p --randomize-all ./test/e2e/
 
 ##@ Build
@@ -102,15 +108,15 @@ ifndef ignore-not-found
 endif
 
 .PHONY: install
-install: manifests kustomize ## Install CRDs into the K8s cluster specified in ~/.kube/config.
+install: manifests init ## Install CRDs into the K8s cluster specified in ~/.kube/config.
 	$(KUSTOMIZE) build config/crd | kubectl apply -f -
 
 .PHONY: uninstall
-uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
+uninstall: manifests init ## Uninstall CRDs from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
 	$(KUSTOMIZE) build config/crd | kubectl delete --ignore-not-found=$(ignore-not-found) -f -
 
 .PHONY: deploy
-deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
+deploy: manifests init ## Deploy controller to the K8s cluster specified in ~/.kube/config.
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
 	$(KUSTOMIZE) build config/default | kubectl apply -f -
 
@@ -118,30 +124,6 @@ deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in
 undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
 	$(KUSTOMIZE) build config/default | kubectl delete --ignore-not-found=$(ignore-not-found) -f -
 
-CONTROLLER_GEN = $(GOBIN)/controller-gen
-.PHONY: controller-gen
-controller-gen: ## Download controller-gen locally if necessary.
-	go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.8.0
-
-KUSTOMIZE = $(GOBIN)/kustomize
-.PHONY: kustomize
-kustomize: ## Download kustomize locally if necessary.
-	go install sigs.k8s.io/kustomize/kustomize/v4@v4.5.5
-
-ENVTEST = $(GOBIN)/setup-envtest
-.PHONY: envtest
-envtest: ## Download envtest-setup locally if necessary.
-	go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
-
-GINKGO = $(GOBIN)/ginkgo
-.PHONY: ginkgo
-ginkgo: ## Download envtest-setup locally if necessary.
-	go install github.com/onsi/ginkgo/v2/ginkgo@v2.0.0
-
-.PHONY: install-gen
-install-gen:
-	go install k8s.io/code-generator/cmd/client-gen
-	go install k8s.io/code-generator/cmd/lister-gen
-	go install k8s.io/code-generator/cmd/informer-gen
-	go install k8s.io/code-generator/cmd/register-gen
-	go install k8s.io/code-generator/cmd/deepcopy-gen
+.PHONY: init
+init:
+	hack/init.sh
