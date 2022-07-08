@@ -81,6 +81,7 @@ type HttpLocalRateLimit struct {
 }
 
 type HttpGlobalRateLimit struct {
+	Domain string `json:"domain"`
 	// Specifies how the request will be matched.
 	Match []*RateLimitMatch `json:"match"`
 	// Configuration for an external rate limit service.
@@ -95,13 +96,18 @@ type RateLimitService struct {
 	// (normally this means there is only 1 such host name in the service registry).
 	//
 	// Example: "rls.foo.svc.cluster.local" or "rls.example.com".
-	Host string `json:"service"`
+	Host string `json:"host"`
 	// The behaviour in case the rate limiting service does not respond back.
 	// When it is set to true, the proxy will not allow traffic in case of
 	// communication failure between rate limiting service and the proxy.
-	DenyOnFailed bool `json:"denyOnFailed"`
+	// +optional
+	DenyOnFailed bool `json:"denyOnFailed,omitempty"`
 	// Specifies the port of the service.
 	Port uint32 `json:"port"`
+	// The timeout in milliseconds for the rate limit service RPC. If not
+	// set, this defaults to 20ms.
+	// +optional
+	Timeout *metav1.Duration `json:"timeout,omitempty"`
 }
 
 type RateLimitRule struct {

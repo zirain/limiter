@@ -1,0 +1,16 @@
+apiVersion: policy.zirain.info/v1alpha1
+kind: RateLimit
+metadata:
+  name: ratelimit-sample
+spec:
+  workloadSelector:
+    app: httpbin
+  globalRateLimit:
+    domain: httpbin
+    match:
+      - url:
+          matchType: Prefix
+          path: "/ip"
+    service:
+      host: ratelimit.default.svc.cluster.local
+      port: 8081

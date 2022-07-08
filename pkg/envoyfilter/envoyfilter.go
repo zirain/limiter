@@ -21,6 +21,7 @@ import (
 	"istio.io/api/networking/v1alpha3"
 	clientnetworkingv1alpha3 "istio.io/client-go/pkg/apis/networking/v1alpha3"
 	"istio.io/istio/pilot/pkg/networking/util"
+	"istio.io/istio/pkg/config/schema/gvk"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	policyv1alpha1 "github.com/zirain/limiter/api/policy/v1alpha1"
@@ -48,15 +49,17 @@ var infinitePolicy = &policyv1alpha1.RatelimitPolicy{
 }
 
 func ToEnvoyFilter(ratelimit *policyv1alpha1.RateLimit) *clientnetworkingv1alpha3.EnvoyFilter {
-	r := buildRouteComponent(ratelimit.Spec.HttpLocalRateLimit.Rules)
-	val, _ := generateValue(r)
+	var configPatches []*v1alpha3.EnvoyFilter_EnvoyConfigObjectPatch
+	if ratelimit.Spec.HttpGlobalRateLimit != nil {
+		configPatches = globalConfigPatches(ratelimit)
+	} else {
+		configPatches = localConfigPatches(ratelimit)
+	}
 
-	vHostName := vhostName(ratelimit)
-	insertval, _ := buildPatchStruct(localRatelimit)
 	ef := &clientnetworkingv1alpha3.EnvoyFilter{
 		TypeMeta: metav1.TypeMeta{
-			APIVersion: "networking.istio.io/v1alpha3",
-			Kind:       "EnvoyFilter",
+			APIVersion: gvk.EnvoyFilter.GroupVersion(),
+			Kind:       gvk.EnvoyFilter.Kind,
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      ratelimit.Name,
@@ -69,50 +72,60 @@ func ToEnvoyFilter(ratelimit *policyv1alpha1.RateLimit) *clientnetworkingv1alpha
 			WorkloadSelector: &v1alpha3.WorkloadSelector{
 				Labels: ratelimit.Spec.WorkloadSelector,
 			},
-			ConfigPatches: []*v1alpha3.EnvoyFilter_EnvoyConfigObjectPatch{
-				{
-					ApplyTo: v1alpha3.EnvoyFilter_HTTP_FILTER,
-					Match: &v1alpha3.EnvoyFilter_EnvoyConfigObjectMatch{
-						Context: matchContext(ratelimit),
-						ObjectTypes: &v1alpha3.EnvoyFilter_EnvoyConfigObjectMatch_Listener{
-							Listener: &v1alpha3.EnvoyFilter_ListenerMatch{
-								FilterChain: &v1alpha3.EnvoyFilter_ListenerMatch_FilterChainMatch{
-									Filter: &v1alpha3.EnvoyFilter_ListenerMatch_FilterMatch{
-										Name: hcmFilter,
-									},
-								},
-							},
-						},
-					},
-					Patch: &v1alpha3.EnvoyFilter_Patch{
-						Operation: v1alpha3.EnvoyFilter_Patch_INSERT_BEFORE,
-						Value:     insertval,
-					},
-				},
-				{
-					ApplyTo: v1alpha3.EnvoyFilter_HTTP_ROUTE,
-					Match: &v1alpha3.EnvoyFilter_EnvoyConfigObjectMatch{
-						Context: matchContext(ratelimit),
-						ObjectTypes: &v1alpha3.EnvoyFilter_EnvoyConfigObjectMatch_RouteConfiguration{
-							RouteConfiguration: &v1alpha3.EnvoyFilter_RouteConfigurationMatch{
-								Vhost: &v1alpha3.EnvoyFilter_RouteConfigurationMatch_VirtualHostMatch{
-									Name: vHostName,
-									Route: &v1alpha3.EnvoyFilter_RouteConfigurationMatch_RouteMatch{
-										Action: v1alpha3.EnvoyFilter_RouteConfigurationMatch_RouteMatch_ROUTE,
-									},
-								},
-							},
-						},
-					},
-					Patch: &v1alpha3.EnvoyFilter_Patch{
-						Operation: v1alpha3.EnvoyFilter_Patch_MERGE,
-						Value:     val,
-					},
-				},
-			},
+			ConfigPatches: configPatches,
 		},
 	}
 	return ef
+}
+
+func localConfigPatches(ratelimit *policyv1alpha1.RateLimit) []*v1alpha3.EnvoyFilter_EnvoyConfigObjectPatch {
+	r := buildLocalRouteComponent(ratelimit.Spec.HttpLocalRateLimit.Rules)
+	val, _ := generateValue(r)
+
+	vHostName := vhostName(ratelimit)
+	insertval, _ := buildPatchStruct(localRatelimit)
+	patches := []*v1alpha3.EnvoyFilter_EnvoyConfigObjectPatch{
+		{
+			ApplyTo: v1alpha3.EnvoyFilter_HTTP_FILTER,
+			Match: &v1alpha3.EnvoyFilter_EnvoyConfigObjectMatch{
+				Context: matchContext(ratelimit),
+				ObjectTypes: &v1alpha3.EnvoyFilter_EnvoyConfigObjectMatch_Listener{
+					Listener: &v1alpha3.EnvoyFilter_ListenerMatch{
+						FilterChain: &v1alpha3.EnvoyFilter_ListenerMatch_FilterChainMatch{
+							Filter: &v1alpha3.EnvoyFilter_ListenerMatch_FilterMatch{
+								Name: hcmFilter,
+							},
+						},
+					},
+				},
+			},
+			Patch: &v1alpha3.EnvoyFilter_Patch{
+				Operation: v1alpha3.EnvoyFilter_Patch_INSERT_BEFORE,
+				Value:     insertval,
+			},
+		},
+		{
+			ApplyTo: v1alpha3.EnvoyFilter_HTTP_ROUTE,
+			Match: &v1alpha3.EnvoyFilter_EnvoyConfigObjectMatch{
+				Context: matchContext(ratelimit),
+				ObjectTypes: &v1alpha3.EnvoyFilter_EnvoyConfigObjectMatch_RouteConfiguration{
+					RouteConfiguration: &v1alpha3.EnvoyFilter_RouteConfigurationMatch{
+						Vhost: &v1alpha3.EnvoyFilter_RouteConfigurationMatch_VirtualHostMatch{
+							Name: vHostName,
+							Route: &v1alpha3.EnvoyFilter_RouteConfigurationMatch_RouteMatch{
+								Action: v1alpha3.EnvoyFilter_RouteConfigurationMatch_RouteMatch_ROUTE,
+							},
+						},
+					},
+				},
+			},
+			Patch: &v1alpha3.EnvoyFilter_Patch{
+				Operation: v1alpha3.EnvoyFilter_Patch_MERGE,
+				Value:     val,
+			},
+		},
+	}
+	return patches
 }
 
 func getOwnerReferences(rl *policyv1alpha1.RateLimit) metav1.OwnerReference {
@@ -134,12 +147,12 @@ func generateValue(message proto.Message) (*types.Struct, error) {
 		return nil, err
 	}
 
-	var value = &types.Struct{}
-	if err = (&gogojsonpb.Unmarshaler{AllowUnknownFields: false}).Unmarshal(bytes.NewBuffer(buf), value); err != nil {
+	s := &types.Struct{}
+	if err = (&gogojsonpb.Unmarshaler{AllowUnknownFields: false}).Unmarshal(bytes.NewBuffer(buf), s); err != nil {
 		return nil, err
 	}
 
-	return value, nil
+	return s, nil
 }
 
 func matchContext(ratelimit *policyv1alpha1.RateLimit) v1alpha3.EnvoyFilter_PatchContext {
@@ -164,7 +177,7 @@ func vhostName(ratelimit *policyv1alpha1.RateLimit) string {
 	return ""
 }
 
-func buildRouteComponent(rules []*policyv1alpha1.RateLimitRule) *routev3.Route {
+func buildLocalRouteComponent(rules []*policyv1alpha1.RateLimitRule) *routev3.Route {
 	return &routev3.Route{
 		Action: &routev3.Route_Route{
 			Route: &routev3.RouteAction{

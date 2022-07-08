@@ -65,6 +65,8 @@ spec:
               globalRateLimit:
                 description: HTTP Global rate limiting.
                 properties:
+                  domain:
+                    type: string
                   match:
                     description: Specifies how the request will be matched.
                     items:
@@ -150,11 +152,7 @@ spec:
                           will not allow traffic in case of communication failure
                           between rate limiting service and the proxy.
                         type: boolean
-                      port:
-                        description: Specifies the port of the service.
-                        format: int32
-                        type: integer
-                      service:
+                      host:
                         description: "Specifies the service that implements rate limit
                           service. The format is \"<Hostname>\". The <Hostname> is
                           the full qualified host name in the Istio service registry
@@ -165,12 +163,20 @@ spec:
                           only 1 such host name in the service registry). \n Example:
                           \"rls.foo.svc.cluster.local\" or \"rls.example.com\"."
                         type: string
+                      port:
+                        description: Specifies the port of the service.
+                        format: int32
+                        type: integer
+                      timeout:
+                        description: The timeout in milliseconds for the rate limit
+                          service RPC. If not set, this defaults to 20ms.
+                        type: string
                     required:
-                    - denyOnFailed
+                    - host
                     - port
-                    - service
                     type: object
                 required:
+                - domain
                 - match
                 - service
                 type: object

@@ -13,6 +13,25 @@ import (
 	policyv1alpha1 "github.com/zirain/limiter/api/policy/v1alpha1"
 )
 
+func TestToEnvoyFilterGlobal(t *testing.T) {
+	cases := []string{
+		"global/basic",
+	}
+
+	for _, tc := range cases {
+		t.Run(tc, func(t *testing.T) {
+			rl, err := readInput(tc)
+			assert.NoError(t, err)
+
+			expected, err := readExpected(tc)
+			assert.NoError(t, err)
+
+			got := ToEnvoyFilter(rl)
+			assert.Equal(t, expected, got)
+		})
+	}
+}
+
 func TestToEnvoyFilter(t *testing.T) {
 	cases := []string{
 		"basic",
