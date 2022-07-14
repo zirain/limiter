@@ -29,6 +29,7 @@ import (
 )
 
 const (
+	matchAllVhost  = ""
 	hcmFilter      = "envoy.filters.network.http_connection_manager"
 	statPrefix     = "ratelimiter"
 	localRatelimit = `{"name": "envoy.filters.http.local_ratelimit", 
@@ -156,25 +157,39 @@ func generateValue(message proto.Message) (*types.Struct, error) {
 }
 
 func matchContext(ratelimit *policyv1alpha1.RateLimit) v1alpha3.EnvoyFilter_PatchContext {
-	if ratelimit.Spec.Egress != nil {
-		return v1alpha3.EnvoyFilter_SIDECAR_OUTBOUND
-
+	if ratelimit.Spec.Traffic == nil {
+		return v1alpha3.EnvoyFilter_SIDECAR_INBOUND
 	}
-
-	return v1alpha3.EnvoyFilter_SIDECAR_INBOUND
+	switch ratelimit.Spec.Traffic.Direction {
+	case policyv1alpha1.TrafficDirectionInbound:
+		return v1alpha3.EnvoyFilter_SIDECAR_INBOUND
+	case policyv1alpha1.TrafficDirectionOutbound:
+		return v1alpha3.EnvoyFilter_SIDECAR_OUTBOUND
+	case policyv1alpha1.TrafficDirectionGateway:
+		return v1alpha3.EnvoyFilter_GATEWAY
+	default:
+		// should not happen, just in case
+		return v1alpha3.EnvoyFilter_SIDECAR_INBOUND
+	}
 }
 
 func vhostName(ratelimit *policyv1alpha1.RateLimit) string {
-	if ratelimit.Spec.Ingress != nil && ratelimit.Spec.Ingress.Port != nil {
-		return fmt.Sprintf("inbound|http|%d", *ratelimit.Spec.Ingress.Port)
+	if ratelimit.Spec.Traffic == nil {
+		return matchAllVhost
 	}
 
-	egress := ratelimit.Spec.Egress
-	if egress != nil {
-		return fmt.Sprintf("%s:%d", egress.Host, egress.Port)
-	}
+	switch ratelimit.Spec.Traffic.Direction {
+	case policyv1alpha1.TrafficDirectionInbound:
+		if ratelimit.Spec.Traffic.Port > 0 {
+			return fmt.Sprintf("inbound|http|%d", ratelimit.Spec.Traffic.Port)
+		}
 
-	return ""
+		return matchAllVhost
+	case policyv1alpha1.TrafficDirectionOutbound, policyv1alpha1.TrafficDirectionGateway:
+		return fmt.Sprintf("%s:%d", ratelimit.Spec.Traffic.Host, ratelimit.Spec.Traffic.Port)
+	default:
+		return matchAllVhost
+	}
 }
 
 func buildLocalRouteComponent(rules []*policyv1alpha1.RateLimitRule) *routev3.Route {

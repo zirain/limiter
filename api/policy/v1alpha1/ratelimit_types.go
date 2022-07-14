@@ -29,16 +29,10 @@ type RateLimitSpec struct {
 	// `RateLimit` configuration should be applied. If omitted, the `RateLimit`
 	// configuration will be applied to all workload instances in the same namespace.
 	WorkloadSelector map[string]string `json:"workloadSelector"`
-	// Ingress specifies the configuration of the sidecar for processing
-	// inbound traffic to the attached workload instance.
+	// Traffic specifies the configuration of the sidecar for processing
+	// inbound/outbound traffic to the attached workload instance.
 	// +optional
-	Ingress *IngressSelector `json:"ingress,omitempty"`
-	// Egress specifies the configuration of the sidecar for processing
-	// outbound traffic from the attached workload instance to other
-	// services in the mesh.
-	// +optional
-	Egress *EgressSelector `json:"egress,omitempty"`
-
+	Traffic *TrafficSelector `json:"traffic,omitempty"`
 	// HTTP Local rate limiting.
 	// +optional
 	HttpLocalRateLimit *HttpLocalRateLimit `json:"localRateLimit,omitempty"`
@@ -47,17 +41,9 @@ type RateLimitSpec struct {
 	HttpGlobalRateLimit *HttpGlobalRateLimit `json:"globalRateLimit,omitempty"`
 }
 
-// `IngressSelector` specifies the properties of an inbound
-// traffic router on the sidecar proxy attached to a workload instance.
-type IngressSelector struct {
-	// The inbound service port number
-	Port *uint32 `json:"port"`
-}
-
-// `EgressSelector` specifies the properties of an outbound traffic
-// on the sidecar proxy attached to a workload instance.
-// Only support on GlobalRateLimit.
-type EgressSelector struct {
+type TrafficSelector struct {
+	// The network traffic direction to the attached workload instance(e.g. Inbound, Outbound, Gateway etc.).
+	Direction TrafficDirection `json:"direction"`
 	// The name of the outbound service to which should be rate limited.
 	// The corresponding service can be a service in the service registry
 	// (e.g., a Kubernetes or cloud foundry service) or a service specified
@@ -70,10 +56,28 @@ type EgressSelector struct {
 	// the actual namespace associated with the reviews service. To avoid
 	// potential misconfigurations, it is recommended to always use fully
 	// qualified domain names over short names.
-	Host string `json:"host"`
-	// The outbound service port number
+	//
+	// NOTE: THIS WILL BE IGNORED IF DIRECTION IS INBOUND
+	//
+	// +optional
+	Host string `json:"host,omitempty"`
+	// The inbound service port number, The outbound service port number
 	Port uint32 `json:"port"`
 }
+
+// TrafficDirection allows selection of the network traffic direction to the attached workload instance.
+type TrafficDirection string
+
+const (
+	// Inbound traffic of sidecar
+	TrafficDirectionInbound TrafficDirection = "Inbound"
+
+	// Outbound traffic of sidecar
+	TrafficDirectionOutbound TrafficDirection = "Outbound"
+
+	// Traffic of Gateway
+	TrafficDirectionGateway TrafficDirection = "Gateway"
+)
 
 type HttpLocalRateLimit struct {
 	// Rules of how the request will be performed.
