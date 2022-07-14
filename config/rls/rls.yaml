@@ -15,7 +15,7 @@ spec:
       labels:
         app: ratelimit
         component: istio-ratelimit
-        sidecar.istio.io/inject: "false" # do not inject
+        #sidecar.istio.io/inject: "false" # do not inject
     spec:
       containers:
         - command:
