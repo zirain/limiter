@@ -9,7 +9,7 @@ spec:
     direction: Gateway
     host: httpbin.default.svc.cluster.local
     port: 8000
-  localRateLimit:
+  local:
     rules:
       - policy:
           brust: 100

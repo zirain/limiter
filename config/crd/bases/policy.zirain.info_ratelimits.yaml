@@ -35,7 +35,7 @@ spec:
           spec:
             description: RateLimitSpec defines the desired state of RateLimit
             properties:
-              globalRateLimit:
+              global:
                 description: HTTP Global rate limiting.
                 properties:
                   domain:
@@ -153,7 +153,7 @@ spec:
                 - match
                 - service
                 type: object
-              localRateLimit:
+              local:
                 description: HTTP Local rate limiting.
                 properties:
                   rules:
@@ -280,18 +280,10 @@ spec:
                     type: string
                   host:
                     description: "The name of the outbound service to which should
-                      be rate limited. The corresponding service can be a service
-                      in the service registry (e.g., a Kubernetes or cloud foundry
-                      service) or a service specified using a `ServiceEntry` or `VirtualService`
-                      configuration. *Note for Kubernetes users*: When short names
-                      are used (e.g. \"reviews\" instead of \"reviews.default.svc.cluster.local\"),
-                      Istio will interpret the short name based on the namespace of
-                      the rule, not the service. A rule in the \"default\" namespace
-                      containing a host \"reviews\" will be interpreted as \"reviews.default.svc.cluster.local\",
-                      irrespective of the actual namespace associated with the reviews
-                      service. To avoid potential misconfigurations, it is recommended
-                      to always use fully qualified domain names over short names.
-                      \n NOTE: THIS WILL BE IGNORED IF DIRECTION IS INBOUND"
+                      be rate limited, which should be the fully qualified host name
+                      in the Istio service registry defined by the Kubernetes service
+                      or ServiceEntry \n NOTE: THIS WILL BE IGNORED IF DIRECTION IS
+                      INBOUND"
                     type: string
                   port:
                     description: The inbound service port number, The outbound service

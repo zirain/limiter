@@ -281,13 +281,13 @@ func (in *RateLimitSpec) DeepCopyInto(out *RateLimitSpec) {
 		*out = new(TrafficSelector)
 		**out = **in
 	}
-	if in.HttpLocalRateLimit != nil {
-		in, out := &in.HttpLocalRateLimit, &out.HttpLocalRateLimit
+	if in.Local != nil {
+		in, out := &in.Local, &out.Local
 		*out = new(HttpLocalRateLimit)
 		(*in).DeepCopyInto(*out)
 	}
-	if in.HttpGlobalRateLimit != nil {
-		in, out := &in.HttpGlobalRateLimit, &out.HttpGlobalRateLimit
+	if in.Global != nil {
+		in, out := &in.Global, &out.Global
 		*out = new(HttpGlobalRateLimit)
 		(*in).DeepCopyInto(*out)
 	}

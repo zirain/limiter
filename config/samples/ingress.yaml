@@ -8,7 +8,7 @@ spec:
   traffic:
     direction: Inbound
     port: 8000
-  localRateLimit:
+  local:
     rules:
       - policy:
           brust: 100

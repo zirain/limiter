@@ -35,27 +35,18 @@ type RateLimitSpec struct {
 	Traffic *TrafficSelector `json:"traffic,omitempty"`
 	// HTTP Local rate limiting.
 	// +optional
-	HttpLocalRateLimit *HttpLocalRateLimit `json:"localRateLimit,omitempty"`
+	Local *HttpLocalRateLimit `json:"local,omitempty"`
 	// HTTP Global rate limiting.
 	// +optional
-	HttpGlobalRateLimit *HttpGlobalRateLimit `json:"globalRateLimit,omitempty"`
+	Global *HttpGlobalRateLimit `json:"global,omitempty"`
 }
 
 type TrafficSelector struct {
 	// The network traffic direction to the attached workload instance(e.g. Inbound, Outbound, Gateway etc.).
 	Direction TrafficDirection `json:"direction"`
-	// The name of the outbound service to which should be rate limited.
-	// The corresponding service can be a service in the service registry
-	// (e.g., a Kubernetes or cloud foundry service) or a service specified
-	// using a `ServiceEntry` or `VirtualService` configuration.
-	// *Note for Kubernetes users*: When short names are used (e.g. "reviews"
-	// instead of "reviews.default.svc.cluster.local"), Istio will interpret
-	// the short name based on the namespace of the rule, not the service. A
-	// rule in the "default" namespace containing a host "reviews" will be
-	// interpreted as "reviews.default.svc.cluster.local", irrespective of
-	// the actual namespace associated with the reviews service. To avoid
-	// potential misconfigurations, it is recommended to always use fully
-	// qualified domain names over short names.
+	// The name of the outbound service to which should be rate limited,
+	// which should be the fully qualified host name in the Istio service
+	// registry defined by the Kubernetes service or ServiceEntry
 	//
 	// NOTE: THIS WILL BE IGNORED IF DIRECTION IS INBOUND
 	//
