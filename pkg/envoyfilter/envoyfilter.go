@@ -51,7 +51,7 @@ var infinitePolicy = &policyv1alpha1.RatelimitPolicy{
 
 func ToEnvoyFilter(ratelimit *policyv1alpha1.RateLimit) *clientnetworkingv1alpha3.EnvoyFilter {
 	var configPatches []*v1alpha3.EnvoyFilter_EnvoyConfigObjectPatch
-	if ratelimit.Spec.HttpGlobalRateLimit != nil {
+	if ratelimit.Spec.Global != nil {
 		configPatches = globalConfigPatches(ratelimit)
 	} else {
 		configPatches = localConfigPatches(ratelimit)
@@ -80,7 +80,7 @@ func ToEnvoyFilter(ratelimit *policyv1alpha1.RateLimit) *clientnetworkingv1alpha
 }
 
 func localConfigPatches(ratelimit *policyv1alpha1.RateLimit) []*v1alpha3.EnvoyFilter_EnvoyConfigObjectPatch {
-	r := buildLocalRouteComponent(ratelimit.Spec.HttpLocalRateLimit.Rules)
+	r := buildLocalRouteComponent(ratelimit.Spec.Local.Rules)
 	val, _ := generateValue(r)
 
 	vHostName := vhostName(ratelimit)

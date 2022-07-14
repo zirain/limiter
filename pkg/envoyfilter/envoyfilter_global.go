@@ -36,11 +36,11 @@ var (
 
 func globalConfigPatches(ratelimit *policyv1alpha1.RateLimit) []*v1alpha3.EnvoyFilter_EnvoyConfigObjectPatch {
 
-	r := buildRouteComponent(ratelimit.Spec.HttpGlobalRateLimit.Match)
+	r := buildRouteComponent(ratelimit.Spec.Global.Match)
 	routeCfg, _ := generateValue(r)
 
 	vHostName := vhostName(ratelimit)
-	ratelimitFilterCfg, _ := buildPatchStruct(ratelimitTypedConfig(ratelimit.Spec.HttpGlobalRateLimit.Domain, ratelimit.Spec.HttpGlobalRateLimit.Service))
+	ratelimitFilterCfg, _ := buildPatchStruct(ratelimitTypedConfig(ratelimit.Spec.Global.Domain, ratelimit.Spec.Global.Service))
 	return []*v1alpha3.EnvoyFilter_EnvoyConfigObjectPatch{
 		{
 			ApplyTo: v1alpha3.EnvoyFilter_HTTP_FILTER,

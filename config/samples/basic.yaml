@@ -5,7 +5,7 @@ metadata:
 spec:
   workloadSelector:
     app: httpbin
-  localRateLimit:
+  local:
     rules:
       - match:
           - url:

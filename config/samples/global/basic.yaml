@@ -5,7 +5,7 @@ metadata:
 spec:
   workloadSelector:
     app: httpbin
-  globalRateLimit:
+  global:
     domain: httpbin
     match:
       - url:
