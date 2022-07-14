@@ -35,33 +35,6 @@ spec:
           spec:
             description: RateLimitSpec defines the desired state of RateLimit
             properties:
-              egress:
-                description: Egress specifies the configuration of the sidecar for
-                  processing outbound traffic from the attached workload instance
-                  to other services in the mesh.
-                properties:
-                  host:
-                    description: 'The name of the outbound service to which should
-                      be rate limited. The corresponding service can be a service
-                      in the service registry (e.g., a Kubernetes or cloud foundry
-                      service) or a service specified using a `ServiceEntry` or `VirtualService`
-                      configuration. *Note for Kubernetes users*: When short names
-                      are used (e.g. "reviews" instead of "reviews.default.svc.cluster.local"),
-                      Istio will interpret the short name based on the namespace of
-                      the rule, not the service. A rule in the "default" namespace
-                      containing a host "reviews" will be interpreted as "reviews.default.svc.cluster.local",
-                      irrespective of the actual namespace associated with the reviews
-                      service. To avoid potential misconfigurations, it is recommended
-                      to always use fully qualified domain names over short names.'
-                    type: string
-                  port:
-                    description: The outbound service port number
-                    format: int32
-                    type: integer
-                required:
-                - host
-                - port
-                type: object
               globalRateLimit:
                 description: HTTP Global rate limiting.
                 properties:
@@ -180,17 +153,6 @@ spec:
                 - match
                 - service
                 type: object
-              ingress:
-                description: Ingress specifies the configuration of the sidecar for
-                  processing inbound traffic to the attached workload instance.
-                properties:
-                  port:
-                    description: The inbound service port number
-                    format: int32
-                    type: integer
-                required:
-                - port
-                type: object
               localRateLimit:
                 description: HTTP Local rate limiting.
                 properties:
@@ -307,6 +269,38 @@ spec:
                     type: array
                 required:
                 - rules
+                type: object
+              traffic:
+                description: Traffic specifies the configuration of the sidecar for
+                  processing inbound/outbound traffic to the attached workload instance.
+                properties:
+                  direction:
+                    description: The network traffic direction to the attached workload
+                      instance(e.g. Inbound, Outbound, Gateway etc.).
+                    type: string
+                  host:
+                    description: "The name of the outbound service to which should
+                      be rate limited. The corresponding service can be a service
+                      in the service registry (e.g., a Kubernetes or cloud foundry
+                      service) or a service specified using a `ServiceEntry` or `VirtualService`
+                      configuration. *Note for Kubernetes users*: When short names
+                      are used (e.g. \"reviews\" instead of \"reviews.default.svc.cluster.local\"),
+                      Istio will interpret the short name based on the namespace of
+                      the rule, not the service. A rule in the \"default\" namespace
+                      containing a host \"reviews\" will be interpreted as \"reviews.default.svc.cluster.local\",
+                      irrespective of the actual namespace associated with the reviews
+                      service. To avoid potential misconfigurations, it is recommended
+                      to always use fully qualified domain names over short names.
+                      \n NOTE: THIS WILL BE IGNORED IF DIRECTION IS INBOUND"
+                    type: string
+                  port:
+                    description: The inbound service port number, The outbound service
+                      port number
+                    format: int32
+                    type: integer
+                required:
+                - direction
+                - port
                 type: object
               workloadSelector:
                 additionalProperties:

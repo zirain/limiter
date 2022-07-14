@@ -5,7 +5,8 @@ metadata:
 spec:
   workloadSelector:
     app: fortio
-  egress:
+  traffic:
+    direction: Outbound
     host: httpbin.default.svc.cluster.local
     port: 8000
   localRateLimit:

@@ -1,0 +1,81 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: ratelimit-sample
+  ownerReferences:
+    - apiVersion: policy.zirain.info/v1alpha1
+      kind: RateLimit
+      name: ratelimit-sample
+spec:
+  workloadSelector:
+    labels:
+      app: istio-ingressgateway
+  configPatches:
+    - applyTo: HTTP_FILTER
+      match:
+        context: GATEWAY
+        listener:
+          filterChain:
+            filter:
+              name: "envoy.filters.network.http_connection_manager"
+      patch:
+        operation: INSERT_BEFORE
+        value:
+          name: envoy.filters.http.local_ratelimit
+          typed_config:
+            "@type": type.googleapis.com/udpa.type.v1.TypedStruct
+            type_url: type.googleapis.com/envoy.extensions.filters.http.local_ratelimit.v3.LocalRateLimit
+            value:
+              stat_prefix: ratelimiter
+    - applyTo: HTTP_ROUTE
+      match:
+        context: GATEWAY
+        routeConfiguration:
+          vhost:
+            name: httpbin.default.svc.cluster.local:8000
+            route:
+              action: ROUTE
+      patch:
+        operation: MERGE
+        value:
+          route:
+            rateLimits:
+              - actions:
+                  - headerValueMatch:
+                      descriptorValue: URL|Prefix|/ip
+                      headers:
+                        - name: :path
+                          stringMatch:
+                            prefix: /ip
+                            ignoreCase: true
+          typedPerFilterConfig:
+            envoy.filters.http.local_ratelimit:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.local_ratelimit.v3.LocalRateLimit
+              statPrefix: "ratelimiter"
+              tokenBucket:
+                maxTokens: 100
+                tokensPerFill: 100
+                fillInterval: 60s
+              filterEnabled:
+                runtimeKey: filter_enabled
+                defaultValue:
+                  numerator: 100
+                  #denominator: HUNDRED
+              filterEnforced:
+                runtimeKey: filter_enforced
+                defaultValue:
+                  numerator: 100
+                  #denominator: HUNDRED
+              responseHeadersToAdd:
+                - append: false
+                  header:
+                    key: x-local-rate-limit
+                    value: "true"
+              descriptors:
+                - entries:
+                    - key: header_match
+                      value: URL|Prefix|/ip
+                  tokenBucket:
+                    maxTokens: 10
+                    tokensPerFill: 10
+                    fillInterval: 60s

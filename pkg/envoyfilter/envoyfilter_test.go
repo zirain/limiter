@@ -40,6 +40,7 @@ func TestToEnvoyFilter(t *testing.T) {
 		"request-header",
 		"request-method",
 		"simple-url",
+		"gateway",
 	}
 
 	for _, tc := range cases {

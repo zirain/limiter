@@ -4,23 +4,16 @@ metadata:
   name: ratelimit-sample
 spec:
   workloadSelector:
-    app: httpbin
+    app: istio-ingressgateway
   traffic:
-    direction: Inbound
+    direction: Gateway
+    host: httpbin.default.svc.cluster.local
     port: 8000
   localRateLimit:
     rules:
       - policy:
           brust: 100
           tokensPerFill: 100
-          interval: 60s
-      - match:
-          - url:
-              matchType: Regex
-              path: "/status/.*"
-        policy:
-          brust: 5
-          tokensPerFill: 5
           interval: 60s
       - match:
           - url:
