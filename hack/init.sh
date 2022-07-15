@@ -22,7 +22,7 @@ if ! [ -x "$(command -v ginkgo)" ]; then
     util::install_tools github.com/onsi/ginkgo/v2/ginkgo v2.0.0
 fi
 
-if ! [ -x "$(command -v ginkgo)" ]; then
+if ! [ -x "$(command -v controller-gen)" ]; then
     util::install_tools sigs.k8s.io/controller-tools/cmd/controller-gen v0.8.0
 fi
 
@@ -35,13 +35,13 @@ if ! [ -x "$(command -v register-gen)" ]; then
 fi
 
 if ! [ -x "$(command -v client-gen)" ]; then
-    util::install_tools k8s.io/code-generator/cmd/register-gen latest
+    util::install_tools k8s.io/code-generator/cmd/client-gen latest
 fi
 
 if ! [ -x "$(command -v lister-gen)" ]; then
-    util::install_tools k8s.io/code-generator/cmd/register-gen latest
+    util::install_tools k8s.io/code-generator/cmd/lister-gen latest
 fi
 
 if ! [ -x "$(command -v informer-gen)" ]; then
-    util::install_tools k8s.io/code-generator/cmd/register-gen latest
+    util::install_tools k8s.io/code-generator/cmd/informer-gen latest
 fi

@@ -35,7 +35,6 @@ var (
 )
 
 func globalConfigPatches(ratelimit *policyv1alpha1.RateLimit) []*v1alpha3.EnvoyFilter_EnvoyConfigObjectPatch {
-
 	r := buildRouteComponent(ratelimit.Spec.Global.Match)
 	routeCfg, _ := generateValue(r)
 

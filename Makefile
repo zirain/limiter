@@ -66,7 +66,7 @@ tidy:
 	go mod tidy -compat=1.17
 
 .PHONY: test
-test: manifests generate fmt vet init ## Run tests.
+test: manifests generate fmt vet  ## Run tests.
 	go test --race --v ./pkg/...
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./controllers/... -coverprofile cover.out
 
@@ -77,7 +77,7 @@ e2e: init
 ##@ Build
 
 .PHONY: build
-build: tidy generate fmt vet ## Build manager binary.
+build: tidy manifests generate fmt vet ## Build manager binary.
 	go build -o bin/manager ./cmd/controller/main.go
 
 .PHONY: run
@@ -108,15 +108,15 @@ ifndef ignore-not-found
 endif
 
 .PHONY: install
-install: manifests init ## Install CRDs into the K8s cluster specified in ~/.kube/config.
+install: manifests ## Install CRDs into the K8s cluster specified in ~/.kube/config.
 	$(KUSTOMIZE) build config/crd | kubectl apply -f -
 
 .PHONY: uninstall
-uninstall: manifests init ## Uninstall CRDs from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
+uninstall: manifests ## Uninstall CRDs from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
 	$(KUSTOMIZE) build config/crd | kubectl delete --ignore-not-found=$(ignore-not-found) -f -
 
 .PHONY: deploy
-deploy: manifests init ## Deploy controller to the K8s cluster specified in ~/.kube/config.
+deploy: manifests ## Deploy controller to the K8s cluster specified in ~/.kube/config.
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
 	$(KUSTOMIZE) build config/default | kubectl apply -f -
 
@@ -127,3 +127,14 @@ undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/confi
 .PHONY: init
 init:
 	hack/init.sh
+
+.PHONY: lint
+lint: golangci-lint
+
+.PHONY: golangci-lint
+golangci-lint:
+	hack/golangci-lint.sh
+
+.PHONY: gen-check
+gen-check: tidy generate manifests
+	hack/gen-check.sh
