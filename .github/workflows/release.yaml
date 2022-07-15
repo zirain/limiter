@@ -32,7 +32,7 @@ jobs:
       - name: Build and push
         id: docker_build
         run: |
-          IMG=zirain/controller:latest make docker-build
-          IMG=zirain/controller:latest make docker-push
+          IMG=ghcr.io/zirain/controller:latest make docker-build
+          IMG=ghcr.io/zirain/controller:latest make docker-push
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
