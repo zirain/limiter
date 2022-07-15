@@ -78,11 +78,11 @@ e2e: init
 
 .PHONY: build
 build: tidy generate fmt vet ## Build manager binary.
-	go build -o bin/manager main.go
+	go build -o bin/manager ./cmd/controller/main.go
 
 .PHONY: run
 run: manifests generate fmt vet ## Run a controller from your host.
-	go run ./main.go
+	go run ./cmd/controller/main.go
 
 .PHONY: docker-build
 docker-build: test ## Build docker image with the manager.
