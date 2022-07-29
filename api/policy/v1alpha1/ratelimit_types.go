@@ -204,7 +204,7 @@ type RateLimitStatus struct {
 // +genclient
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
-// +kubebuilder:resource:scope="Namespaced"
+// +kubebuilder:resource:scope="Namespaced",categories={zirain-info, policy-zirain-info}
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // RateLimit is the Schema for the ratelimits API
