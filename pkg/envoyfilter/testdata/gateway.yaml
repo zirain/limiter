@@ -32,8 +32,8 @@ spec:
         context: GATEWAY
         routeConfiguration:
           vhost:
-            name: httpbin.default.svc.cluster.local:8000
             route:
+              name: httpbin.default.svc.cluster.local:8000
               action: ROUTE
       patch:
         operation: MERGE

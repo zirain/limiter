@@ -83,7 +83,6 @@ func localConfigPatches(ratelimit *policyv1alpha1.RateLimit) []*v1alpha3.EnvoyFi
 	r := buildLocalRouteComponent(ratelimit.Spec.Local.Rules)
 	val, _ := generateValue(r)
 
-	vHostName := vhostName(ratelimit)
 	insertval, _ := buildPatchStruct(localRatelimit)
 	patches := []*v1alpha3.EnvoyFilter_EnvoyConfigObjectPatch{
 		{
@@ -108,17 +107,8 @@ func localConfigPatches(ratelimit *policyv1alpha1.RateLimit) []*v1alpha3.EnvoyFi
 		{
 			ApplyTo: v1alpha3.EnvoyFilter_HTTP_ROUTE,
 			Match: &v1alpha3.EnvoyFilter_EnvoyConfigObjectMatch{
-				Context: matchContext(ratelimit),
-				ObjectTypes: &v1alpha3.EnvoyFilter_EnvoyConfigObjectMatch_RouteConfiguration{
-					RouteConfiguration: &v1alpha3.EnvoyFilter_RouteConfigurationMatch{
-						Vhost: &v1alpha3.EnvoyFilter_RouteConfigurationMatch_VirtualHostMatch{
-							Name: vHostName,
-							Route: &v1alpha3.EnvoyFilter_RouteConfigurationMatch_RouteMatch{
-								Action: v1alpha3.EnvoyFilter_RouteConfigurationMatch_RouteMatch_ROUTE,
-							},
-						},
-					},
-				},
+				Context:     matchContext(ratelimit),
+				ObjectTypes: envoyConfigObjectMatch(ratelimit),
 			},
 			Patch: &v1alpha3.EnvoyFilter_Patch{
 				Operation: v1alpha3.EnvoyFilter_Patch_MERGE,
@@ -170,6 +160,35 @@ func matchContext(ratelimit *policyv1alpha1.RateLimit) v1alpha3.EnvoyFilter_Patc
 	default:
 		// should not happen, just in case
 		return v1alpha3.EnvoyFilter_SIDECAR_INBOUND
+	}
+}
+
+func envoyConfigObjectMatch(ratelimit *policyv1alpha1.RateLimit) *v1alpha3.EnvoyFilter_EnvoyConfigObjectMatch_RouteConfiguration {
+	vHostName := vhostName(ratelimit)
+
+	if ratelimit.Spec.Traffic != nil && ratelimit.Spec.Traffic.Direction == policyv1alpha1.TrafficDirectionGateway {
+		// can not use VirtualHostMatch on gateway
+		return &v1alpha3.EnvoyFilter_EnvoyConfigObjectMatch_RouteConfiguration{
+			RouteConfiguration: &v1alpha3.EnvoyFilter_RouteConfigurationMatch{
+				Vhost: &v1alpha3.EnvoyFilter_RouteConfigurationMatch_VirtualHostMatch{
+					Route: &v1alpha3.EnvoyFilter_RouteConfigurationMatch_RouteMatch{
+						Name:   vHostName,
+						Action: v1alpha3.EnvoyFilter_RouteConfigurationMatch_RouteMatch_ROUTE,
+					},
+				},
+			},
+		}
+	}
+
+	return &v1alpha3.EnvoyFilter_EnvoyConfigObjectMatch_RouteConfiguration{
+		RouteConfiguration: &v1alpha3.EnvoyFilter_RouteConfigurationMatch{
+			Vhost: &v1alpha3.EnvoyFilter_RouteConfigurationMatch_VirtualHostMatch{
+				Name: vHostName,
+				Route: &v1alpha3.EnvoyFilter_RouteConfigurationMatch_RouteMatch{
+					Action: v1alpha3.EnvoyFilter_RouteConfigurationMatch_RouteMatch_ROUTE,
+				},
+			},
+		},
 	}
 }
 
